@@ -6,21 +6,43 @@
 
 [a-z][a-z0-9]*: { yylval.sval = strdup(yytext);  return LABEL; }
 
-mov { return MOV; }
+(mov|MOV) { return MOV; }
 
-ban { return BAN; }
+(ban|BAN) { return BAN; }
 
-sum { return SUM; }
+(sum|SUM) { return SUM; }
 
-res { return RES; }
+(res|RES) { return RES; }
 
-mul { return MUL; }
+(mul|MUL) { return MUL; }
 
-div { return DIV; }
+(div|DIV) { return DIV; }
 
-and { return AND; }
+(and|AND) { return AND; }
 
-or { return OR; }
+(or|OR) { return OR; }
+
+(not|NOT) { return NOT; }
+
+(shr|SHR) { return SHR; }
+
+(shl|SHL) { return SHL; }
+
+(nop|NOP) { return NOP; }
+
+(cmp|CMP) { return CMP; }
+
+(slt|SLT) { return SLT; }
+
+(sma|SMA) { return SMA; }
+
+(sme|SME) { return SME; }
+
+(sic|SIC) { return SIC; }
+
+(inc|INC) { return INC; }
+
+(dec|DEC) { return DEC; }
 
 \n {return '\n';}
 
