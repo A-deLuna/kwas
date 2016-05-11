@@ -8,6 +8,20 @@
 
 mov { return MOV; }
 
+ban { return BAN; }
+
+sum { return SUM; }
+
+res { return RES; }
+
+mul { return MUL; }
+
+div { return DIV; }
+
+and { return AND; }
+
+or { return OR; }
+
 \n {return '\n';}
 
 r[0-9]+ { yylval.ival = atoi(yytext+1); return REGISTER; }
