@@ -2,7 +2,11 @@
 #include <stdio.h>
 #include "assembler.h"
 extern int yylex(void);
+extern FILE * yyin;
 void yyerror (char const *);
+extern int pass;
+extern int yylineno;
+extern char* yytext;
 %}
 
 %union {
@@ -11,7 +15,7 @@ void yyerror (char const *);
 }
 
 %token <ival> MOV
-%token <sval> LABEL
+%token <sval> STRING
 %token <ival> REGISTER
 %token <ival> NUMBER
 %token <ival> ADDRESS
@@ -44,16 +48,16 @@ void yyerror (char const *);
 
 asmfile : lines;
 
-lines   : %empty
-        | lines line '\n'
+lines   : %empty 
+        | lines line '\n' 
         ;
 
-line    : label
-        | label command
+line    : label 
+        | label command 
         ;
 
 label   : %empty
-        | LABEL
+        | STRING ':' {save_label($1); }
         ;
 
 command : mov
@@ -68,10 +72,13 @@ command : mov
         | shr
         | shl
         | nop
+        | cmp
+        | sma
+        | slt
         ;
 
 mov     : MOV regreg_regnum8 {write(concat(0, $2));}
-        | MOV register address_8_bit {printf("0x1%x%02x\n", (($2 << 2) |  3), $3);}
+        | MOV register address_8_bit {write(concat(1, registers_number8(regreg($2, 3), $3)));}
         | MOV address_8_bit register {printf("0x1%x%02x\n", ((12) |  $3), $2);}
         ;
 
@@ -90,6 +97,10 @@ shr     : SHR register { write(concat(9, 4|$2));}
 shl     : SHL register { write(concat(9, 8|$2));}
 
 nop     : NOP {wb(0x9f);}
+
+cmp     : CMP regreg_regnum8 { write(concat(0xa, $2));}
+sma     : SMA STRING { }
+slt     : SLT STRING {} 
 
 regreg_regnum8 : register register { $$ = regreg($1, $2);}
                | register number_8_bit { $$ = registers_number8(regreg($1, 3), $2);}
@@ -111,10 +122,21 @@ address_8_bit : ADDRESS {if($1 > 0xff) yyerror("address must be 8 bit");}
 %%
 
 void yyerror (char const *s) {
-  fprintf(stderr, "%s\n", s);
+  fprintf(stderr, "%s at line %d last token %s \n", s ,yylineno, yytext);
 }
 
-int main() {
+int main(int argc, char **argv) {
+  ++argv, --argc; 
+  if(argc > 0) {
+    yyin = fopen(argv[0], "r");
+  }
+  else {
+    yyin = stdin;
+  }
+  pass = 1;
+  yyparse();
+  printf("%s end of first pass\n");
+  pass = 2;
   yyparse();
 }
 

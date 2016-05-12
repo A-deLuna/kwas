@@ -2,6 +2,7 @@
 #include "uthash.h"
 char bytes [10000];
 int pc = 0;
+int pass = 1;
 
 struct symbol {
   char name[100];
@@ -32,15 +33,19 @@ int registers_number8(int r, int n) {
 }
 
 void wb(int x) {
-  x &= 0xff;
-  printf("%02X\n", x);
-  bytes[pc++] = x;
+  if(pass == 2) {
+    x &= 0xff;
+    printf("%02X\n", x);
+    bytes[pc++] = x;
+  }
 }
 
 void write(int x) {
-  if (x == 0) return;
-  write(x >> 8);
-  wb(x);
+  if (pass == 2) {
+    if (x == 0) return;
+    write(x >> 8);
+    wb(x);
+  }
 }
 
 void add_symbol(char * n , int value) {
@@ -53,7 +58,14 @@ void add_symbol(char * n , int value) {
 
 int find_symbol(char *n) {
   struct symbol *s;
-  HAS_FIND_STR(symbol_table, n, s);
+  HASH_FIND_STR(symbol_table, n, s);
+}
+
+void save_label(char* label) {
+  if(pass == 1){
+    printf("found label '%s', pc = %d\n", label, pc);
+    add_symbol(label, pc);
+  }
 }
 
 //TODO free hashmap memory

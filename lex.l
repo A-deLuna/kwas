@@ -1,10 +1,8 @@
 %{
 #include "grammar.tab.h"
 %}
-
+%option yylineno
 %%
-
-[a-z][a-z0-9]*: { yylval.sval = strdup(yytext);  return LABEL; }
 
 (mov|MOV) { return MOV; }
 
@@ -44,12 +42,16 @@
 
 (dec|DEC) { return DEC; }
 
-\n {return '\n';}
+\n {return *yytext;}
+
+: { return *yytext;}
 
 r[0-9]+ { yylval.ival = atoi(yytext+1); return REGISTER; }
 
 #[0-9a-f]+ { yylval.ival = (int)strtol(yytext+1, NULL, 16); return NUMBER; }
 
 @[0-9a-f]+ { yylval.ival = (int)strtol(yytext+1, NULL, 16); return ADDRESS; }
+
+[a-z][a-z0-9]* { yylval.sval = strdup(yytext);  return STRING; }
 
 .

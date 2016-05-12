@@ -1,0 +1,16 @@
+start:
+       ban #1
+       mov r0 #a
+       mov r1 #9
+       cmp r0 r1
+       sma mayor
+       mov r2 #0
+       mov @ff r2
+       mov @fa r0
+       slt fin
+mayor: res r0 #a
+       mov r2 #1
+       mov @fa r2
+       mov @ff r0
+fin:   slt fin
+
