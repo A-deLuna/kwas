@@ -79,7 +79,7 @@ command : mov
 
 mov     : MOV regreg_regnum8 {write(concat(0, $2));}
         | MOV register address_8_bit {write(concat(1, registers_number8(regreg($2, 3), $3)));}
-        | MOV address_8_bit register {write(concat(1, registers_number8(regreg(0xC, $3), $2)));}
+        | MOV address_8_bit register {write(concat(1, registers_number8(regreg(3, $3), $2)));}
         ;
 
 ban     : BAN number_4_bit {wb(0x20 | $2);}
@@ -100,7 +100,7 @@ nop     : NOP {wb(0x9f);}
 
 cmp     : CMP regreg_regnum8 { write(concat(0xa, $2));}
 sma     : SMA STRING {wb(0xC0); if(pass == 1) wb(0xff); else wb(find_diff_label($2));}
-slt     : SLT STRING { if(pass == 1) write(0xBfff); else write(concat(0xB,find_label($2)));} 
+slt     : SLT STRING { if(pass == 1) write(0xBfff); else write((0xB000 | find_label($2)));} 
 
 regreg_regnum8 : register register { $$ = regreg($1, $2);}
                | register number_8_bit { $$ = registers_number8(regreg($1, 3), $2);}
@@ -149,5 +149,7 @@ int main(int argc, char **argv) {
   pass = 2;
   pc = 0;
   yyparse();
+
+  write_file();
 }
 

@@ -8,4 +8,5 @@ void write(int x);
 void save_label(char* label);
 int find_diff_label(char * label);
 int find_label(char *label);
+void write_file();
 #endif

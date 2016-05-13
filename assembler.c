@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "uthash.h"
-char bytes [10000];
+unsigned char bytes [10000];
 int pc = 0;
 int pass = 1;
 
@@ -35,8 +35,9 @@ int registers_number8(int r, int n) {
 void wb(int x) {
   if(pass == 2) {
     x &= 0xff;
-    printf("%02X\n", x);
+    //printf("%02X\n", x);
     bytes[pc] = x;
+    //printf("%02X %d\n", bytes[pc]);
   }
   pc++;
 }
@@ -66,7 +67,7 @@ int find_symbol(char *n) {
 
 void save_label(char* label) {
   if(pass == 1){
-    printf("found label '%s', pc = %d\n", label, pc);
+    //printf("found label '%s', pc = %d\n", label, pc);
     add_symbol(label, pc);
   }
 }
@@ -78,5 +79,19 @@ int find_label(char *label) {
 
 int find_diff_label(char * label) {
   int label_pc = find_label(label);
+  //printf("%d - %d = %d\n", label_pc, pc+1, label_pc - (pc+1));
+  return label_pc - (pc+1);
+}
+
+void write_file() {
+  FILE * out = fopen("out.gin", "w");
+  fprintf(out, "type rom_type is array (%d downto 0) of std_logic_vector (8 downto 0);\n", pc-1);
+  fprintf(out, "signal ROM : rom_type:=(");
+  for(int i = 0; i < pc-1; ++i) { 
+    if(i % 8 == 0) fputs("\n\t", out);
+    fprintf(out, "X\"%02X\",", bytes[i]);
+  }
+  fprintf(out, "X\"%02X\"", bytes[pc-1]);
+  fprintf(out, ");");
 }
 //TODO free hashmap memory
