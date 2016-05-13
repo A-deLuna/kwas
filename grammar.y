@@ -79,10 +79,10 @@ command : mov
 
 mov     : MOV regreg_regnum8 {write(concat(0, $2));}
         | MOV register address_8_bit {write(concat(1, registers_number8(regreg($2, 3), $3)));}
-        | MOV address_8_bit register {printf("0x1%x%02x\n", ((12) |  $3), $2);}
+        | MOV address_8_bit register {write(concat(1, registers_number8(regreg(0xC, $3), $2)));}
         ;
 
-ban     : BAN number_4_bit {printf("0x2%x\n", $2);}
+ban     : BAN number_4_bit {wb(0x20 | $2);}
         ;
 
 sum     : SUM regreg_regnum8 { write(concat(3, $2));}
@@ -99,8 +99,8 @@ shl     : SHL register { write(concat(9, 8|$2));}
 nop     : NOP {wb(0x9f);}
 
 cmp     : CMP regreg_regnum8 { write(concat(0xa, $2));}
-sma     : SMA STRING { }
-slt     : SLT STRING {} 
+sma     : SMA STRING {wb(0xC0); if(pass == 1) wb(0xff); else wb(find_diff_label($2));}
+slt     : SLT STRING { if(pass == 1) write(0xBfff); else write(concat(0xB,find_label($2)));} 
 
 regreg_regnum8 : register register { $$ = regreg($1, $2);}
                | register number_8_bit { $$ = registers_number8(regreg($1, 3), $2);}
@@ -127,6 +127,7 @@ void yyerror (char const *s) {
 
 int main(int argc, char **argv) {
   ++argv, --argc; 
+  extern int pc;
   if(argc > 0) {
     yyin = fopen(argv[0], "r");
   }
@@ -134,9 +135,19 @@ int main(int argc, char **argv) {
     yyin = stdin;
   }
   pass = 1;
+  pc = 0;
+  printf(" before of first pass\n");
   yyparse();
-  printf("%s end of first pass\n");
+  printf(" end of first pass\n");
+  fclose(yyin);
+  if(argc > 0) {
+    yyin = fopen(argv[0], "r");
+  }
+  else {
+    yyin = stdin;
+  }
   pass = 2;
+  pc = 0;
   yyparse();
 }
 

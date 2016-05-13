@@ -6,4 +6,6 @@ int regreg(int r1, int r2);
 void wb(int x);
 void write(int x);
 void save_label(char* label);
+int find_diff_label(char * label);
+int find_label(char *label);
 #endif

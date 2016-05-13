@@ -36,16 +36,15 @@ void wb(int x) {
   if(pass == 2) {
     x &= 0xff;
     printf("%02X\n", x);
-    bytes[pc++] = x;
+    bytes[pc] = x;
   }
+  pc++;
 }
 
 void write(int x) {
-  if (pass == 2) {
     if (x == 0) return;
     write(x >> 8);
     wb(x);
-  }
 }
 
 void add_symbol(char * n , int value) {
@@ -59,6 +58,10 @@ void add_symbol(char * n , int value) {
 int find_symbol(char *n) {
   struct symbol *s;
   HASH_FIND_STR(symbol_table, n, s);
+  if(s) {
+    return s->value;
+  }
+  return -1;
 }
 
 void save_label(char* label) {
@@ -68,4 +71,12 @@ void save_label(char* label) {
   }
 }
 
+int find_label(char *label) {
+  int label_pc = find_symbol(label);
+  return label_pc;
+}
+
+int find_diff_label(char * label) {
+  int label_pc = find_label(label);
+}
 //TODO free hashmap memory
