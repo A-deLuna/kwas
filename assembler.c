@@ -85,7 +85,7 @@ int find_diff_label(char * label) {
 
 void write_file() {
   FILE * out = fopen("out.gin", "w");
-  fprintf(out, "type rom_type is array (%d downto 0) of std_logic_vector (8 downto 0);\n", pc-1);
+  fprintf(out, "type rom_type is array (%d downto 0) of std_logic_vector (7 downto 0);\n", pc-1);
   fprintf(out, "signal ROM : rom_type:=(");
   for(int i = 0; i < pc-1; ++i) { 
     if(i % 8 == 0) fputs("\n\t", out);

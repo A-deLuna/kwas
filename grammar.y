@@ -17,6 +17,7 @@ extern char* yytext;
 %token <ival> MOV
 %token <sval> STRING
 %token <ival> REGISTER
+%token <ival> INDIRECT_REGISTER
 %token <ival> NUMBER
 %token <ival> ADDRESS
 %token <ival> BAN
@@ -37,8 +38,11 @@ extern char* yytext;
 %token <ival> SIC
 %token <ival> INC
 %token <ival> DEC
+%token <ival> PROC
+%token <ival> RET
 
 %type <ival> register
+%type <ival> indirect_register
 %type <ival> number_8_bit
 %type <ival> number_4_bit
 %type <ival> address_8_bit
@@ -75,11 +79,17 @@ command : mov
         | cmp
         | sma
         | slt
+        | sme
+        | sic
+        | inc
+        | dec
         ;
 
 mov     : MOV regreg_regnum8 {write(concat(0, $2));}
-        | MOV register address_8_bit {write(concat(1, registers_number8(regreg($2, 3), $3)));}
-        | MOV address_8_bit register {write(concat(1, registers_number8(regreg(3, $3), $2)));}
+        | MOV register ',' address_8_bit {write(concat(1, registers_number8(regreg($2, 3), $4)));}
+        | MOV address_8_bit ',' register {write(concat(1, registers_number8(regreg(3, $4), $2)));}
+        | MOV register ',' indirect_register { write(concat(0xD, regreg($2, $4)));}
+        | MOV indirect_register ',' register { write(concat(0xE, regreg($2, $4)));}
         ;
 
 ban     : BAN number_4_bit {wb(0x20 | $2);}
@@ -96,17 +106,28 @@ not     : NOT register { write(concat(9, 0|$2));}
 shr     : SHR register { write(concat(9, 4|$2));}
 shl     : SHL register { write(concat(9, 8|$2));}
 
+inc     : INC register { write(concat(12, 8|$2));}
+dec     : DEC register { write(concat(12, 12|$2));}
+
 nop     : NOP {wb(0x9f);}
 
 cmp     : CMP regreg_regnum8 { write(concat(0xa, $2));}
+
 sma     : SMA STRING {wb(0xC0); if(pass == 1) wb(0xff); else wb(find_diff_label($2));}
+
+sme     : SME STRING {wb(0xC1); if(pass == 1) wb(0xff); else wb(find_diff_label($2));}
+
+sic     : SIC STRING {wb(0xC2); if(pass == 1) wb(0xff); else wb(find_diff_label($2));}
+
 slt     : SLT STRING { if(pass == 1) write(0xBfff); else write((0xB000 | find_label($2)));} 
 
-regreg_regnum8 : register register { $$ = regreg($1, $2);}
-               | register number_8_bit { $$ = registers_number8(regreg($1, 3), $2);}
+regreg_regnum8 : register ',' register { $$ = regreg($1, $3);}
+               | register ',' number_8_bit {  $$ = registers_number8(regreg($1, 3), $3);}
                ;
 
 
+indirect_register : INDIRECT_REGISTER { if($1 < -1 || $1 > 2) yyerror("invalid register number"); }
+                  ;
 
 register : REGISTER { if($1 < -1 || $1 > 2) yyerror("invalid register number");}
          ;

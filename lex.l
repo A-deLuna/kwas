@@ -42,16 +42,20 @@
 
 (dec|DEC) { return DEC; }
 
-\n {return *yytext;}
+(proc|PROC) { return PROC; }
 
-: { return *yytext;}
+(ret|RET) { return RET; }
 
-r[0-9]+ { yylval.ival = atoi(yytext+1); return REGISTER; }
+[:,\n] {return *yytext;}
 
-#[0-9a-f]+ { yylval.ival = (int)strtol(yytext+1, NULL, 16); return NUMBER; }
+@[rR][0-9]+ {yylval.ival = atoi(yytext+2); return INDIRECT_REGISTER;}
 
-@[0-9a-f]+ { yylval.ival = (int)strtol(yytext+1, NULL, 16); return ADDRESS; }
+[rR][0-9]+ { yylval.ival = atoi(yytext+1); return REGISTER; }
 
-[a-z][a-z0-9]* { yylval.sval = strdup(yytext);  return STRING; }
+#[0-9a-fA-F]+ { yylval.ival = (int)strtol(yytext+1, NULL, 16); return NUMBER; }
+
+@[0-9a-fA-F]+ { yylval.ival = (int)strtol(yytext+1, NULL, 16); return ADDRESS; }
+
+[a-zA-F][a-zA-F0-9]* { yylval.sval = strdup(yytext);  return STRING; }
 
 .
